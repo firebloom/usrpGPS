@@ -2275,8 +2275,20 @@ void *gps_task(void *arg)
 					key_direction = WEST;
 					break;
 				case 10:
-					cnt++;
-					printf("Shift\n");
+					/*fp2 = fopen("shift.txt", "r");
+					fscanf(fp2, "%d %d", &period, &shift);
+					fclose(fp2);
+					if(period == 0)
+						period = 1;
+					printf("Start shift (period = %ds, shift = %dns)\n", period, shift*100);*/
+					break;
+				case '8':
+				case '4':
+				case '5':
+				case '6':
+				case '2':
+					key_direction = UP;
+					break;
 				default:
 					break;
 				}
@@ -2329,6 +2341,35 @@ void *gps_task(void *arg)
 				xyz[iumd][0] += tmat[0][0]*neu[0] + tmat[1][0]*neu[1] + tmat[2][0]*neu[2];
 				xyz[iumd][1] += tmat[0][1]*neu[0] + tmat[1][1]*neu[1] + tmat[2][1]*neu[2];
 				xyz[iumd][2] += tmat[0][2]*neu[0] + tmat[1][2]*neu[1] + tmat[2][2]*neu[2];
+			}
+
+			if(direction == UP)
+			{
+				//xyz2llh(xyz[iumd], llh);
+				xyz2llh(xyz[0], llh);
+				//float dist = 0.00001;
+				float dist = 0.0002;
+				switch(key)
+				{
+				case '8':
+					llh[0] += dist;
+					break;
+				case '4':
+					llh[1] -= dist;
+					break;
+				case '6':
+					llh[1] += dist;
+					break;
+				case '2':
+					llh[0] -= dist;
+					break;
+				case '5':
+					llh[0] = s->opt.llh[0];
+					llh[1] = s->opt.llh[1];
+					llh[2] = s->opt.llh[2];
+					break;
+				}
+				llh2xyz(llh, xyz[iumd]);
 			}
 		}
 #endif
@@ -2416,8 +2457,8 @@ void *gps_task(void *arg)
 			}
 
 			// Store I/Q samples into buffer
-			iq_buff[isamp*2] = (short)i_acc;
-			iq_buff[isamp*2+1] = (short)q_acc;
+			iq_buff[isamp*2] = (short)i_acc*16;
+			iq_buff[isamp*2+1] = (short)q_acc*16;
 
 		} // End of omp parallel for
 
